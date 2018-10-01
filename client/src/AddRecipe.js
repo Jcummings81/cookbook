@@ -25,20 +25,20 @@ class AddRecipe extends React.Component {
   }
 
   render() {
-    const { name, description } = this.state
+    const { name, description } = this.state // so no need to do for name and description
     return (
       <Form onSubmit={this.handleSubmit}>
         <Form.Input
           placeholder="Name"
           required
-          value={name}
+          value={name} // instead of this.state.name
           onChange={this.handleChange}
           name="name"
         />
         <Form.Input
           name="description"
           placeholder="Description"
-          value={description}
+          value={description} // instead of this.state.description
           onChange={this.handleChange}
         />
         <Form.Button>Add Recipe</Form.Button>

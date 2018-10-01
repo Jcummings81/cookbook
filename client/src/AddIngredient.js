@@ -1,48 +1,91 @@
 import React from 'react'
-import { Form } from 'semantic-ui-react'
 import axios from 'axios'
+import { 
+  Form,
+  Card,
+  Button,
+  Header,
+} from 'semantic-ui-react'
 
-class AddIngredient extends React.Component {
-  state = { name: '' }
+class Recipe extends React.Component {
+  state = { recipe: {}, ingredients: [], ingredient: '', amount: '' }
+
+  componentDidMount() {
+    axios.get(`/api/recipes/${this.props.match.params.id}`)
+      .then( res => this.setState({ recipe: res.data }) )
+    axios.get('/api/recipe_ingredients/new')
+      .then( res => this.setState({ ingredients: res.data }) )
+  }
+
+  ingredientOptions = () => {
+    //[{ key: 1, value: 1, text: 'Salt'}]
+    return this.state.ingredients.map( ing => {
+      return { key: ing.id, value: ing.id, text: ing.name }
+    })
+  }
 
   handleSubmit = (e) => {
     e.preventDefault()
-    // params.require(:ingredient).permit(:name)
-    // { ingredient: { name: 'Salt' } }
-    const ingredient = { name: this.state.name }
-    axios.post('/api/ingredients', { ingredient })
-      .then( () => this.resetForm() )
+    const { 
+      ingredient,
+      amount,
+      recipe: { id }
+    } = this.state
+    const recipe_ingredient = {
+      recipe_id: id,
+      ingredient_id: ingredient,
+      amount,
+    }
+
+    axios.post('/api/recipe_ingredients', { recipe_ingredient })
+      .then( res => this.setState({ ingredient: '', amount: '' }) )
+  }
+
+  changeIngredient = (_, { value }) => {
+    this.setState({ ingredient: value })
   }
 
   handleChange = (e) => {
-    this.setState({ name: e.target.value })
-  }
-
-  clicky = (e) => {
-    console.log(e.target)
-  }
-
-  resetForm = () => {
-    this.setState({ name: '' })
-    this.props.history.push('/ingredients')
+    this.setState({ amount: e.target.value })
   }
 
   render() {
+    const { 
+      recipe: { name, description },
+      ingredient,
+      amount,
+    } = this.state
     return (
-      <Form onSubmit={this.handleSubmit}>
-        <Form.Input
-          placeholder="Add Ingredient"
-          value={this.state.name}
-          onChange={this.handleChange}
-          required
-        />
-        <Form.Button type="button" onClick={this.resetForm}> 
-          Cancel
-        </Form.Button>
-        <Form.Button>Add</Form.Button>
-      </Form>
+      <div>
+        <Card>
+          <Card.Content>
+            <Card.Header>
+              { name }
+            </Card.Header>
+            <Card.Description>
+              { description }
+            </Card.Description>
+          </Card.Content>
+          <Card.Content extra>
+            <Header>Add Ingredient</Header>
+            <Form onSubmit={this.handleSubmit}>
+              <Form.Input
+                value={amount}
+                onChange={this.handleChange}
+                required
+              />
+              <Form.Select
+                options={this.ingredientOptions()}
+                value={ingredient}
+                onChange={this.changeIngredient}
+              />
+              <Form.Button>+</Form.Button>
+            </Form>
+          </Card.Content>
+        </Card>
+      </div>
     )
   }
 }
 
-export default AddIngredient
+export default Recipe
